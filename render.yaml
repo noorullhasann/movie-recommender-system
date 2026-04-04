@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: movie-recommender-backend
+    env: python
+    region: oregon
+    plan: free
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: cd backend && gunicorn --bind 0.0.0.0:$PORT --workers 4 --timeout 120 app:app
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: FLASK_ENV
+        value: production
+      - key: TMDB_API_KEY
+        value: ${TMDB_API_KEY}
+    routes:
+      - type: http
+        path: /api
+        destination: http://localhost:$PORT
+
+  - type: web
+    name: movie-recommender-frontend
+    env: static
+    region: oregon
+    plan: free
+    staticPublishPath: frontend/dist
+    buildCommand: cd frontend && npm install && npm run build
+    envVars:
+      - key: VITE_API_URL
+        value: https://movie-recommender-backend.onrender.com
