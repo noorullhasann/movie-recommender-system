@@ -7,7 +7,7 @@ function MovieSearchDropdown({ value, onChange, onSelect }) {
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
-    if (value.length < 2) {
+    if (value.length < 1) {
       setSearchResults([]);
       return;
     }
@@ -15,7 +15,7 @@ function MovieSearchDropdown({ value, onChange, onSelect }) {
     const searchMovies = async () => {
       try {
         const res = await fetch(
-          `http://127.0.0.1:5000/api/search?q=${encodeURIComponent(value)}&limit=8`
+          `http://127.0.0.1:5000/api/search?q=${encodeURIComponent(value)}&limit=12`
         );
         const data = await res.json();
         setSearchResults(data);
@@ -25,7 +25,7 @@ function MovieSearchDropdown({ value, onChange, onSelect }) {
       }
     };
 
-    const timer = setTimeout(searchMovies, 300);
+    const timer = setTimeout(searchMovies, 200);
     return () => clearTimeout(timer);
   }, [value]);
 
@@ -36,7 +36,8 @@ function MovieSearchDropdown({ value, onChange, onSelect }) {
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onFocus={() => setIsOpen(true)}
-        placeholder="Search for a movie..."
+        onBlur={() => setTimeout(() => setIsOpen(false), 200)}
+        placeholder="🔍 Search for a movie..."
         className="search-input"
       />
       {isOpen && searchResults.length > 0 && (
@@ -60,9 +61,12 @@ function MovieSearchDropdown({ value, onChange, onSelect }) {
               )}
               <div className="dropdown-info">
                 <div className="dropdown-title">{movie.title}</div>
-                {movie.release_date && (
-                  <div className="dropdown-year">
-                    {new Date(movie.release_date).getFullYear()}
+                {movie.genres && (
+                  <div className="dropdown-genres">{movie.genres}</div>
+                )}
+                {movie.vote_average && (
+                  <div className="dropdown-rating">
+                    ⭐ {movie.vote_average.toFixed(1)}/10
                   </div>
                 )}
               </div>
@@ -70,6 +74,71 @@ function MovieSearchDropdown({ value, onChange, onSelect }) {
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+function MovieCard({ movie, showReason = false }) {
+  return (
+    <div className="movie-card">
+      <div className="movie-poster-wrapper">
+        {movie.poster_url ? (
+          <img
+            src={movie.poster_url}
+            alt={movie.title}
+            className="movie-poster"
+            onError={(e) => {
+              e.target.style.display = "none";
+            }}
+          />
+        ) : (
+          <div className="movie-poster-placeholder">
+            <span>🎬</span>
+          </div>
+        )}
+        <div className="movie-overlay">
+          {movie.genres && (
+            <div className="movie-genres">
+              {movie.genres.split(",").map((genre, i) => (
+                <span key={i} className="genre-badge">
+                  {genre.trim()}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+      <div className="movie-card-content">
+        <h3 className="movie-title">{movie.title}</h3>
+        {movie.overview && (
+          <p className="movie-overview">{movie.overview.substring(0, 85)}...</p>
+        )}
+        <div className="movie-footer">
+          <div className="movie-rating">
+            {movie.vote_average && (
+              <span className="rating-stars">
+                ⭐ {movie.vote_average.toFixed(1)}
+              </span>
+            )}
+            {movie.predicted_rating && (
+              <span className="rating-stars">
+                📊 {movie.predicted_rating.toFixed(2)}
+              </span>
+            )}
+            {movie.similarity_score && (
+              <span className="rating-stars">
+                🎯 {(movie.similarity_score * 100).toFixed(0)}%
+              </span>
+            )}
+            {movie.score && (
+              <span className="rating-stars">📈 {movie.score.toFixed(1)}</span>
+            )}
+          </div>
+          {showReason && movie.reason && (
+            <div className="movie-reason">💡 {movie.reason}</div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
@@ -82,19 +151,23 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [method, setMethod] = useState("hybrid");
+  const [selectedGenre, setSelectedGenre] = useState("");
+  const [genres, setGenres] = useState([]);
   const [userRatings, setUserRatings] = useState([]);
   const [allMovies, setAllMovies] = useState([]);
   const [stats, setStats] = useState(null);
   const [activeTab, setActiveTab] = useState("recommend");
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
 
-  const API_BASE = import.meta.env.VITE_API_URL 
+  const API_BASE = import.meta.env.VITE_API_URL
     ? `${import.meta.env.VITE_API_URL}/api`
     : "http://127.0.0.1:5000/api";
 
-  // Fetch stats and movies on load
+  // Fetch stats, movies, and genres on load
   useEffect(() => {
     fetchStats();
     fetchMovies();
+    fetchGenres();
   }, []);
 
   const fetchStats = async () => {
@@ -109,11 +182,21 @@ function App() {
 
   const fetchMovies = async () => {
     try {
-      const res = await fetch(`${API_BASE}/movies`);
+      const res = await fetch(`${API_BASE}/movies?limit=200`);
       const data = await res.json();
       setAllMovies(data);
     } catch (err) {
       console.error("Failed to fetch movies:", err);
+    }
+  };
+
+  const fetchGenres = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/genres`);
+      const data = await res.json();
+      setGenres(data);
+    } catch (err) {
+      console.error("Failed to fetch genres:", err);
     }
   };
 
@@ -122,32 +205,43 @@ function App() {
     setLoading(true);
 
     try {
-      let url = `${API_BASE}/recommend?method=${method}`;
-
-      if (method === "collaborative" || method === "hybrid") {
-        if (!userId) {
-          setError("Please enter a User ID for this method");
-          setLoading(false);
-          return;
+      // Primary method: Genre-based (no user_id needed)
+      if (selectedGenre) {
+        const res = await fetch(
+          `${API_BASE}/recommend?method=genre&genre=${encodeURIComponent(selectedGenre)}`
+        );
+        const data = await res.json();
+        
+        if (data.error) {
+          setError(data.error);
+          setRecommendations([]);
+        } else {
+          setRecommendations(data.recommendations || []);
         }
-        url += `&user_id=${userId}`;
-      } else if (method === "content") {
-        if (!movieTitle) {
-          setError("Please enter a movie title for content-based recommendations");
-          setLoading(false);
-          return;
+      } else if (movieTitle) {
+        // Content-based: similar movies
+        const res = await fetch(
+          `${API_BASE}/recommend?method=content&movie=${encodeURIComponent(movieTitle)}`
+        );
+        const data = await res.json();
+        
+        if (data.error) {
+          setError(data.error);
+          setRecommendations([]);
+        } else {
+          setRecommendations(data.recommendations || []);
         }
-        url += `&movie=${encodeURIComponent(movieTitle)}`;
-      }
-
-      const res = await fetch(url);
-      const data = await res.json();
-
-      if (data.error) {
-        setError(data.error);
-        setRecommendations([]);
       } else {
-        setRecommendations(data.recommendations || []);
+        // Default: show popular movies
+        const res = await fetch(`${API_BASE}/recommend?method=popular`);
+        const data = await res.json();
+        
+        if (data.error) {
+          setError(data.error);
+          setRecommendations([]);
+        } else {
+          setRecommendations(data.recommendations || []);
+        }
       }
     } catch (err) {
       setError("Failed to fetch recommendations: " + err.message);
@@ -161,7 +255,7 @@ function App() {
     setError("");
 
     if (!userId || !movieTitle || rating === null) {
-      setError("Please fill in all rating fields");
+      setError("Please fill in all fields");
       return;
     }
 
@@ -179,7 +273,8 @@ function App() {
       const data = await res.json();
 
       if (res.ok) {
-        alert("Rating saved successfully!");
+        setShowSuccessMessage(true);
+        setTimeout(() => setShowSuccessMessage(false), 3000);
         setMovieTitle("");
         setRating(3);
         fetchUserRatings();
@@ -194,7 +289,7 @@ function App() {
 
   const fetchUserRatings = async () => {
     if (!userId) {
-      setError("Please enter a User ID first");
+      setError("Please enter a User ID");
       return;
     }
 
@@ -214,240 +309,326 @@ function App() {
   };
 
   return (
-    <div className="container">
+    <div className="app-container">
       <header className="header">
-        <h1>🎬 Movie Recommender System</h1>
-        <p className="subtitle">
-          Powered by Collaborative Filtering & Cosine Similarity
-        </p>
+        <div className="header-content">
+          <div className="header-title">
+            <h1 className="main-title">🎬 CineMatch</h1>
+            <p className="tagline">Your Personal Movie Genius</p>
+          </div>
+          <p className="subtitle">
+            Discover movies you'll love • Powered by advanced ML algorithms
+          </p>
+        </div>
       </header>
 
       {stats && (
-        <div className="stats-bar">
-          <div className="stat">
-            <span className="stat-value">{stats.total_users}</span>
-            <span className="stat-label">Users</span>
-          </div>
-          <div className="stat">
-            <span className="stat-value">{stats.total_movies}</span>
-            <span className="stat-label">Movies</span>
-          </div>
-          <div className="stat">
-            <span className="stat-value">{stats.total_ratings}</span>
-            <span className="stat-label">Ratings</span>
-          </div>
-          <div className="stat">
-            <span className="stat-value">{stats.avg_rating.toFixed(2)}</span>
-            <span className="stat-label">Avg Rating</span>
+        <div className="stats-container">
+          <div className="stats-grid">
+            <div className="stat-card">
+              <div className="stat-icon">👥</div>
+              <div className="stat-value">{stats.total_users}+</div>
+              <div className="stat-label">Active Users</div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-icon">🎞️</div>
+              <div className="stat-value">{stats.total_movies}+</div>
+              <div className="stat-label">Movies</div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-icon">⭐</div>
+              <div className="stat-value">{stats.avg_rating.toFixed(1)}</div>
+              <div className="stat-label">Avg Rating</div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-icon">🎭</div>
+              <div className="stat-value">{stats.total_genres || 19}</div>
+              <div className="stat-label">Genres</div>
+            </div>
           </div>
         </div>
       )}
 
-      <div className="tabs">
-        <button
-          className={`tab-button ${activeTab === "recommend" ? "active" : ""}`}
-          onClick={() => setActiveTab("recommend")}
-        >
-          Get Recommendations
-        </button>
-        <button
-          className={`tab-button ${activeTab === "rate" ? "active" : ""}`}
-          onClick={() => setActiveTab("rate")}
-        >
-          Rate a Movie
-        </button>
-        <button
-          className={`tab-button ${activeTab === "ratings" ? "active" : ""}`}
-          onClick={() => setActiveTab("ratings")}
-        >
-          My Ratings
-        </button>
-      </div>
-
-      {error && <div className="error-message">{error}</div>}
-
-      {activeTab === "recommend" && (
-        <div className="section">
-          <h2>Get Movie Recommendations</h2>
-
-          <div className="input-group">
-            <label>User ID:</label>
-            <input
-              type="number"
-              value={userId}
-              onChange={(e) => setUserId(e.target.value)}
-              placeholder="Enter your user ID"
-            />
-          </div>
-
-          <div className="input-group">
-            <label>Recommendation Method:</label>
-            <select value={method} onChange={(e) => setMethod(e.target.value)}>
-              <option value="hybrid">Hybrid (Collaborative + Content-Based)</option>
-              <option value="collaborative">Collaborative Filtering</option>
-              <option value="content">Content-Based</option>
-            </select>
-          </div>
-
-          {method === "content" && (
-            <div className="input-group">
-              <label>Movie Title:</label>
-              <MovieSearchDropdown
-                value={movieTitle}
-                onChange={setMovieTitle}
-                onSelect={setMovieTitle}
-              />
-            </div>
-          )}
-
+      <div className="container">
+        <div className="tabs-container">
           <button
-            className="btn btn-primary"
-            onClick={getRecommendations}
-            disabled={loading}
+            className={`tab-button ${activeTab === "recommend" ? "active" : ""}`}
+            onClick={() => setActiveTab("recommend")}
           >
-            {loading ? "Loading..." : "Get Recommendations"}
+            <span className="tab-icon">🎯</span> Discover
           </button>
+          <button
+            className={`tab-button ${activeTab === "genre" ? "active" : ""}`}
+            onClick={() => setActiveTab("genre")}
+          >
+            <span className="tab-icon">🎭</span> By Genre
+          </button>
+          <button
+            className={`tab-button ${activeTab === "rate" ? "active" : ""}`}
+            onClick={() => setActiveTab("rate")}
+          >
+            <span className="tab-icon">⭐</span> Rate
+          </button>
+          <button
+            className={`tab-button ${activeTab === "myratings" ? "active" : ""}`}
+            onClick={() => setActiveTab("myratings")}
+          >
+            <span className="tab-icon">📋</span> My Ratings
+          </button>
+        </div>
 
-          {recommendations.length > 0 && (
-            <div className="recommendations">
-              <h3>Recommended Movies:</h3>
-              <div className="movie-grid">
-                {recommendations.map((rec, i) => (
-                  <div key={i} className="movie-card">
-                    {rec.poster_url && (
-                      <div className="movie-poster-container">
-                        <img
-                          src={rec.poster_url}
-                          alt={rec.title}
-                          className="movie-poster"
-                        />
-                      </div>
-                    )}
-                    <div className="movie-card-content">
-                      <h4>{rec.title}</h4>
-                      {rec.overview && (
-                        <p className="movie-overview">{rec.overview.substring(0, 100)}...</p>
-                      )}
-                      <div className="score">
-                        {rec.predicted_rating && (
-                          <p>Rating: {rec.predicted_rating.toFixed(2)}/5</p>
-                        )}
-                        {rec.similarity_score && (
-                          <p>Similarity: {(rec.similarity_score * 100).toFixed(1)}%</p>
-                        )}
-                        {rec.score && <p>Score: {rec.score.toFixed(2)}</p>}
-                      </div>
-                    </div>
-                  </div>
+        {error && <div className="error-alert">{error}</div>}
+        {showSuccessMessage && (
+          <div className="success-alert">✅ Rating saved successfully!</div>
+        )}
+
+        {/* DISCOVER TAB */}
+        {activeTab === "recommend" && (
+          <div className="content-section">
+            <div className="section-header">
+              <h2>🎯 Discover Movies For You</h2>
+              <p>Browse by genre, search by movie, or discover popular hits</p>
+            </div>
+
+            <div className="card form-card">
+              <div className="form-grid">
+                <div className="form-group">
+                  <label htmlFor="genre">📽️ Pick a Genre</label>
+                  <select
+                    id="genre"
+                    value={selectedGenre}
+                    onChange={(e) => setSelectedGenre(e.target.value)}
+                    className="form-input"
+                  >
+                    <option value="">✨ All Recommendations</option>
+                    {genres.map((genre) => (
+                      <option key={genre} value={genre}>
+                        {genre}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="orMovie">Or Search a Movie</label>
+                  <MovieSearchDropdown
+                    value={movieTitle}
+                    onChange={setMovieTitle}
+                    onSelect={setMovieTitle}
+                  />
+                </div>
+              </div>
+
+              <button
+                className="btn btn-primary btn-large"
+                onClick={getRecommendations}
+                disabled={loading}
+              >
+                {loading ? (
+                  <>
+                    <span className="spinner"></span> Finding Perfect Matches...
+                  </>
+                ) : (
+                  <>🔍 Get Recommendations</>
+                )}
+              </button>
+            </div>
+
+            {recommendations.length > 0 && (
+              <div className="recommendations-section">
+                <h3 className="recommendations-title">
+                  ✨ Movies We Think You'll Love
+                </h3>
+                <div className="movie-grid">
+                  {recommendations.map((rec, i) => (
+                    <MovieCard key={i} movie={rec} showReason={true} />
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* GENRE TAB - Quick Genre Browsing */}
+        {activeTab === "genre" && (
+          <div className="content-section">
+            <div className="section-header">
+              <h2>🎭 Browse by Genre</h2>
+              <p>Quick access to your favorite movie categories</p>
+            </div>
+
+            <div className="card form-card">
+              <div className="genre-grid">
+                {genres.map((genre) => (
+                  <button
+                    key={genre}
+                    className="genre-button"
+                    onClick={async () => {
+                      setSelectedGenre(genre);
+                      setError("");
+                      setLoading(true);
+                      try {
+                        const res = await fetch(
+                          `${API_BASE}/recommend?method=genre&genre=${encodeURIComponent(genre)}`
+                        );
+                        const data = await res.json();
+                        if (data.error) {
+                          setError(data.error);
+                        } else {
+                          setRecommendations(data.recommendations || []);
+                        }
+                      } catch (err) {
+                        setError("Failed to fetch: " + err.message);
+                      } finally {
+                        setLoading(false);
+                      }
+                    }}
+                  >
+                    {genre}
+                  </button>
                 ))}
               </div>
             </div>
-          )}
-        </div>
-      )}
 
-      {activeTab === "rate" && (
-        <div className="section">
-          <h2>Rate a Movie</h2>
-
-          <form onSubmit={rateMovie} className="form">
-            <div className="input-group">
-              <label>User ID:</label>
-              <input
-                type="number"
-                value={userId}
-                onChange={(e) => setUserId(e.target.value)}
-                placeholder="Enter your user ID"
-              />
-            </div>
-
-            <div className="input-group">
-              <label>Movie Title:</label>
-              <MovieSearchDropdown
-                value={movieTitle}
-                onChange={setMovieTitle}
-                onSelect={setMovieTitle}
-              />
-            </div>
-
-            <div className="input-group">
-              <label>Rating: {rating}/5</label>
-              <input
-                type="range"
-                min="0"
-                max="5"
-                step="0.5"
-                value={rating}
-                onChange={(e) => setRating(e.target.value)}
-                className="slider"
-              />
-              <div className="rating-labels">
-                <span>0</span>
-                <span>2.5</span>
-                <span>5</span>
-              </div>
-            </div>
-
-            <button type="submit" className="btn btn-primary">
-              Save Rating
-            </button>
-          </form>
-        </div>
-      )}
-
-      {activeTab === "ratings" && (
-        <div className="section">
-          <h2>Your Ratings</h2>
-
-          <div className="input-group">
-            <label>User ID:</label>
-            <input
-              type="number"
-              value={userId}
-              onChange={(e) => setUserId(e.target.value)}
-              placeholder="Enter your user ID"
-            />
-            <button
-              className="btn btn-secondary"
-              onClick={fetchUserRatings}
-              disabled={loading}
-            >
-              Load Ratings
-            </button>
-          </div>
-
-          {userRatings.length > 0 && (
-            <div className="ratings-table">
-              <h3>Your Movie Ratings ({userRatings.length})</h3>
-              <table>
-                <thead>
-                  <tr>
-                    <th>Movie Title</th>
-                    <th>Your Rating</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {userRatings.map((rating, i) => (
-                    <tr key={i}>
-                      <td>{rating.title}</td>
-                      <td>
-                        <span className="rating-badge">
-                          {rating.rating}/5
-                        </span>
-                      </td>
-                    </tr>
+            {recommendations.length > 0 && (
+              <div className="recommendations-section">
+                <h3 className="recommendations-title">
+                  🎬 {selectedGenre} Movies
+                </h3>
+                <div className="movie-grid">
+                  {recommendations.map((rec, i) => (
+                    <MovieCard key={i} movie={rec} />
                   ))}
-                </tbody>
-              </table>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* RATE TAB */}
+        {activeTab === "rate" && (
+          <div className="content-section">
+            <div className="section-header">
+              <h2>⭐ Rate Movies</h2>
+              <p>Help us learn what you love by rating movies</p>
             </div>
-          )}
-        </div>
-      )}
+
+            <div className="card form-card">
+              <form onSubmit={rateMovie}>
+                <div className="form-group">
+                  <label htmlFor="rateUserId">Your User ID</label>
+                  <input
+                    id="rateUserId"
+                    type="number"
+                    value={userId}
+                    onChange={(e) => setUserId(e.target.value)}
+                    placeholder="Enter your ID"
+                    className="form-input"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="rateMovieTitle">Movie Title</label>
+                  <MovieSearchDropdown
+                    value={movieTitle}
+                    onChange={setMovieTitle}
+                    onSelect={setMovieTitle}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="ratingSlider">
+                    Your Rating: <span className="rating-value">{rating}/5</span>
+                  </label>
+                  <input
+                    id="ratingSlider"
+                    type="range"
+                    min="0"
+                    max="5"
+                    step="0.5"
+                    value={rating}
+                    onChange={(e) => setRating(e.target.value)}
+                    className="rating-slider"
+                  />
+                  <div className="rating-scale">
+                    <span>😞 Hate</span>
+                    <span>😐 OK</span>
+                    <span>😍 Love</span>
+                  </div>
+                </div>
+
+                <button type="submit" className="btn btn-primary btn-large">
+                  💾 Save My Rating
+                </button>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* MY RATINGS TAB */}
+        {activeTab === "myratings" && (
+          <div className="content-section">
+            <div className="section-header">
+              <h2>📋 My Ratings</h2>
+              <p>View all the movies you've rated</p>
+            </div>
+
+            <div className="card form-card">
+              <div className="form-group">
+                <label htmlFor="viewUserId">Your User ID</label>
+                <input
+                  id="viewUserId"
+                  type="number"
+                  value={userId}
+                  onChange={(e) => setUserId(e.target.value)}
+                  placeholder="Enter your user ID"
+                  className="form-input"
+                />
+              </div>
+              <button
+                className="btn btn-primary btn-large"
+                onClick={fetchUserRatings}
+                disabled={loading || !userId}
+              >
+                {loading ? (
+                  <>
+                    <span className="spinner"></span> Loading...
+                  </>
+                ) : (
+                  <>📚 Load My Ratings</>
+                )}
+              </button>
+            </div>
+
+            {userRatings.length > 0 && (
+              <div className="ratings-section">
+                <h3>You've rated {userRatings.length} movies</h3>
+                <div className="ratings-grid">
+                  {userRatings.map((r, i) => (
+                    <div key={i} className="rating-item">
+                      <div className="rating-title">{r.title}</div>
+                      <div className="rating-badge">
+                        {"⭐".repeat(Math.round(r.rating))}
+                      </div>
+                      <div className="rating-score">{r.rating}/5</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {userRatings.length === 0 && userId && !loading && (
+              <div className="empty-state">
+                <p>No ratings found for user {userId}</p>
+                <p className="hint">Start rating movies to get better recommendations!</p>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
 
       <footer className="footer">
         <p>
-          Built with Collaborative Filtering, Content-Based Filtering & Cosine
-          Similarity
+          🚀 Built with React • ML-Powered Recommendations • Your taste, Our algorithm
         </p>
       </footer>
     </div>

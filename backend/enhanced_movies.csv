@@ -1,0 +1,71 @@
+title,genres,vote_average,release_date,popularity,overview
+Die Hard,"Action, Thriller",8.5,1988-07-15,85.5,An off-duty cop must save his wife and fellow hostages from a group of terrorists.
+The Dark Knight,"Action, Crime, Drama",9.0,2008-07-18,90.0,Batman faces against a criminal mastermind.
+Mission Impossible,"Action, Adventure, Thriller",7.2,1996-05-22,72.0,An American agent goes undercover.
+John Wick,"Action, Crime, Drama",7.4,2014-10-24,75.0,A retired hitman comes out of retirement.
+Mad Max Fury Road,"Action, Adventure, Sci-Fi",8.1,2015-05-15,80.0,Post-apocalyptic wasteland action.
+The Matrix,"Action, Sci-Fi",8.7,1999-03-31,87.0,A computer programmer discovers reality.
+Terminator 2,"Action, Sci-Fi",8.5,1991-07-03,82.0,A terminator sent back to protect a boy.
+Fast and Furious 7,"Action, Crime, Drama",7.1,2015-04-03,78.0,The crew faces off against a powerful force.
+Raid 2 Berendal,"Action, Crime, Drama",8.0,2014-03-28,76.0,Indonesian action masterpiece.
+Kingsman The Secret Service,"Action, Adventure, Comedy",7.7,2014-10-24,77.0,A stylish secret agent recruits a street orphan.
+Inception,"Action, Sci-Fi, Thriller",8.8,2010-07-16,88.0,A thief who steals corporate secrets through dreams.
+Interstellar,"Adventure, Drama, Sci-Fi",8.6,2014-11-07,86.0,Explorers travel through a wormhole in space.
+The Martian,"Adventure, Drama, Sci-Fi",8.0,2015-10-02,80.0,An astronaut must survive on Mars.
+Blade Runner 2049,"Drama, Mystery, Sci-Fi",8.0,2017-10-06,79.0,A cop uncovers a secret in Los Angeles.
+Back to the Future,"Adventure, Comedy, Sci-Fi",8.5,1985-07-03,85.0,Time travel adventure to the past.
+Avatar,"Action, Adventure, Fantasy, Sci-Fi",7.8,2009-12-18,78.0,A paraplegic marine travels to an alien moon.
+Gravity,"Adventure, Drama, Sci-Fi, Thriller",7.7,2013-10-04,77.0,Two astronauts must return to Earth.
+Tenet,"Action, Sci-Fi, Thriller",6.8,2020-09-03,68.0,Temporal inversion espionage thriller.
+Dune,"Action, Adventure, Drama, Sci-Fi",8.0,2021-10-22,80.0,Epic adaptation of Frank Herbert novel.
+Ready Player One,"Action, Adventure, Sci-Fi",7.2,2018-03-29,72.0,Virtual reality adventure in a dystopian future.
+The Shawshank Redemption,Drama,9.3,1994-10-14,93.0,Two imprisoned men bond over years.
+Forrest Gump,"Drama, Romance",8.8,1994-07-06,88.0,A man with low IQ changes America.
+The Godfather,"Crime, Drama",9.2,1972-03-24,92.0,The aging patriarch of crime dynasty transfers control.
+The Godfather Part II,"Crime, Drama",9.0,1974-12-20,90.0,The story of the Corleone family continues.
+Pulp Fiction,"Crime, Drama",8.9,1994-10-14,89.0,"The lives of two mob hitmen, a boxer, and a pair of diner bandits."
+Life is Beautiful,"Comedy, Drama, Family",8.6,1997-12-20,86.0,A father uses imagination to shield his son from war.
+The Pursuit of Happiness,"Biography, Drama",8.2,2006-12-15,82.0,A father and son try to survive homelessness.
+Schindlers List,"Biography, Drama, History",9.0,1993-11-30,90.0,An industrialist saves his workers during the Holocaust.
+The Sum of All Fears,"Drama, Thriller",6.5,2002-05-02,65.0,A CIA analyst uncovers a nuclear conspiracy.
+Gladiator,"Action, Adventure, Drama",8.5,2000-05-05,85.0,A former Roman slavery fights in the arena.
+Forrest Gump,"Comedy, Drama, Romance",8.8,1994-07-06,88.0,A man with low IQ changes America.
+The Great Dictator,"Comedy, Drama, War",8.5,1940-10-15,85.0,A Jewish barber is mistaken for a dictator.
+Singin in the Rain,"Comedy, Musical, Romance",8.3,1952-03-27,83.0,Hollywood musical about silent films.
+Sunset Boulevard,"Comedy, Drama, Film-Noir",8.4,1950-08-10,84.0,A failed writer seduced by a faded film star.
+Citizen Kane,"Comedy, Drama, Mystery",8.3,1941-05-01,83.0,The story of a newspaper magnate.
+Parasite,"Comedy, Drama, Thriller",8.6,2019-05-30,86.0,A poor family schemes their way into wealth.
+The Grand Budapest Hotel,"Adventure, Comedy, Crime",8.1,2014-03-28,81.0,A writer visits a legendary concierge.
+Jojo Rabbit,"Comedy, Drama, War",7.9,2019-10-18,79.0,A boy with an imaginary Führer experiences friendship.
+The Gentlemen,"Action, Comedy, Crime",8.0,2019-12-25,80.0,An American expat drug lord tries to escape.
+Knives Out,"Comedy, Crime, Drama",7.9,2019-11-27,79.0,A detective investigates a familys secrets.
+The Shining,"Drama, Horror",8.4,1980-05-23,84.0,A family isolated at a haunted hotel.
+The Exorcist,Horror,8.1,1973-12-26,81.0,A possessed girl needs an exorcist.
+Hereditary,"Drama, Horror, Mystery",7.6,2018-06-08,76.0,A family is haunted by mysterious forces.
+A Quiet Place,"Drama, Horror, Sci-Fi",7.5,2018-04-06,75.0,A family must live in silence to survive.
+Get Out,"Horror, Mystery, Thriller",7.7,2017-02-24,77.0,A man visits his girlfriends family estate.
+It Follows,"Horror, Mystery",6.8,2014-03-27,68.0,A supernatural entity follows its prey.
+The Ring,"Horror, Mystery",7.1,2002-10-18,71.0,Watching a tape leads to death.
+Insidious,"Horror, Mystery, Thriller",6.8,2010-09-01,68.0,A family struggles with a supernatural haunting.
+The Conjuring,"Horror, Mystery, Thriller",7.5,2013-07-19,75.0,Paranormal investigators help a haunted family.
+Sinister,"Crime, Drama, Horror",7.6,2012-10-05,76.0,A writer discovers a dark family secret.
+The Notebook,"Drama, Romance",7.8,2004-06-25,78.0,A poor yet passionate man falls in love.
+Titanic,"Drama, Romance",7.8,1997-12-19,78.0,Two passengers meet on the Titanic.
+Pride and Prejudice,"Drama, Romance",7.6,2005-09-23,76.0,Elizabeth and Darcy navigate love and society.
+La La Land,"Drama, Musical, Romance",8.0,2016-12-09,80.0,Two artists fall in love in Los Angeles.
+"Crazy, Stupid, Love","Comedy, Drama, Romance",7.6,2011-06-24,76.0,Romantic and comedic entanglements.
+The Fault in Our Stars,"Drama, Romance",7.8,2014-06-06,78.0,Two teenagers with cancer fall in love.
+About Time,"Comedy, Drama, Fantasy, Romance",7.8,2013-09-04,78.0,A man uses time travel to improve his life.
+The Vow,"Drama, Romance",6.8,2012-02-10,68.0,"After a car accident, a woman loses her memory."
+Romeo and Juliet,"Drama, Romance",6.8,1996-11-01,68.0,The classic Shakespearean tragedy.
+Atonement,"Drama, Romance, War",7.1,2007-09-14,71.0,A false accusation ruins young love.
+The Silence of the Lambs,"Crime, Drama, Thriller",8.6,1991-02-14,86.0,An FBI trainee seeks help from a serial killer.
+Se7en,"Crime, Drama, Mystery, Thriller",8.6,1995-09-22,86.0,Two detectives hunt a serial killer.
+Psycho,"Horror, Thriller",8.5,1960-12-08,85.0,A woman checks into a sinister motel.
+The Sting,"Comedy, Crime, Drama",8.3,1973-12-25,83.0,Two con artists plan an elaborate scheme.
+Rear Window,"Mystery, Thriller",8.4,1954-08-01,84.0,A man spies on neighbors from his window.
+Vertigo,"Mystery, Romance, Thriller",8.3,1958-05-09,83.0,A detective with acrophobia investigates a mystery.
+No Country for Old Men,"Crime, Drama, Thriller",8.1,2007-11-21,81.0,A hunter discovers drug cartel money.
+The Prestige,"Drama, Mystery, Sci-Fi, Thriller",8.5,2006-10-20,85.0,Two magicians engage in a rivalry.
+Zodiac,"Crime, Drama, Mystery",7.9,2007-05-25,79.0,The hunt for the Zodiac Killer.
+Mindhunters,"Crime, Drama, Mystery, Thriller",7.6,2004-05-14,76.0,A group of profilers hunt serial killers.
